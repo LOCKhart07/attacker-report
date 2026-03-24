@@ -424,8 +424,8 @@ def market_monitor_tick():
         {{
           questions(where: {{questionId_in: [{ids_str}]}}, first: 1000) {{
             questionId
-            responses(orderBy: timestamp, orderDirection: desc, first: 1) {{
-              user answer bond
+            responses(orderBy: timestamp, orderDirection: asc) {{
+              user answer bond timestamp
             }}
           }}
         }}
@@ -443,10 +443,12 @@ def market_monitor_tick():
         for q in data.get("data", {}).get("questions", []):
             responses = q.get("responses", [])
             if responses:
+                latest = responses[-1]
                 answerer_map[q["questionId"]] = {
-                    "user": responses[0]["user"].lower(),
-                    "answer": responses[0]["answer"],
-                    "bond": responses[0]["bond"],
+                    "user": latest["user"].lower(),
+                    "answer": latest["answer"],
+                    "bond": latest["bond"],
+                    "history": responses,
                 }
 
     # Check for unknown answerers
@@ -493,15 +495,41 @@ def market_monitor_tick():
                     f"  Returned: {ret_amt:.4f} xDAI"
                 )
 
+        # Build answer history
+        history = resp.get("history", [])
+        history_lines = ""
+        if history:
+            lines = []
+            for h in history:
+                h_user = h["user"].lower()
+                h_ans = decode_answer(h["answer"])
+                h_bond = int(h["bond"]) / 1e18
+                if h_user == SUSPECT_ADDRESS:
+                    who = "SUSPECT"
+                elif h_user == DAVID:
+                    who = "David"
+                elif h_user in WHITELISTED:
+                    who = "whitelisted"
+                else:
+                    who = h_user[:10] + "..."
+                lines.append(
+                    f"  {h_ans} ({h_bond:.4f}) by {who}"
+                )
+            history_lines = (
+                "\n\n*Answer history:*\n"
+                + "\n".join(lines)
+            )
+
         alert = (
             f"{emoji} *{severity} answer on {creator} market*\n\n"
             f"*Q:* {title}\n"
-            f"*Answer:* {answer}\n"
+            f"*Current answer:* {answer}\n"
             f"*Bond:* {bond_xdai:.4f} xDAI\n"
             f"*Counter-bond:* {counter_bond:.4f} xDAI\n"
             f"*Answerer:* `{user}`\n"
             f"[Reality.eth]({reality_url(qid)})"
             f"{bet_line}"
+            f"{history_lines}"
         )
         alerts.append(alert)
 
