@@ -4,5 +4,7 @@ services:
     restart: unless-stopped
     env_file: .env
     volumes:
-      - ./data:/app/data
-      - ./.cache.json:/app/.cache.json
+      - cache:/app/cache
+
+volumes:
+  cache:

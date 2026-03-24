@@ -22,7 +22,6 @@ uv run python main.py
 ## Docker
 
 ```bash
-touch .cache.json
 docker compose up -d
 ```
 

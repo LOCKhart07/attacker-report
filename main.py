@@ -103,9 +103,10 @@ def _get_retry(url, **kwargs):
             time.sleep(2 * (attempt + 1))
 
 
-CACHE_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), ".cache.json"
+CACHE_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "cache"
 )
+CACHE_FILE = os.path.join(CACHE_DIR, "state.json")
 
 
 def _load_cache():
@@ -120,6 +121,7 @@ def _load_cache():
 def _save_cache(data):
     """Persist state to disk."""
     try:
+        os.makedirs(CACHE_DIR, exist_ok=True)
         with open(CACHE_FILE, "w") as f:
             json.dump(data, f, indent=2)
     except Exception as e:
