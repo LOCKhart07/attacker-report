@@ -488,7 +488,7 @@ def market_monitor_tick():
             )
             if bet_amt > 0:
                 emoji = "\U0001f6a8"  # escalate
-                severity = "BET+RESOLVE"
+                severity = "BET+ANSWER"
                 bet_line = (
                     f"\n\U0001f4b0 *Also bet on this market!*"
                     f"\n  Invested: {bet_amt:.4f} xDAI"
